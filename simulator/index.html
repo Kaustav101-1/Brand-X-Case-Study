@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brand X budget mix simulator</title>
+<style>
+  :root { --blue:#0460A9; --red:#E74A21; --purple:#7B4FA3; --teal:#17A589; --ink:#1A1A1A; --muted:#606060; --panel:#F2F5FB; --line:#DDE3EC; --good:#0B7A53; --bad:#B3261E; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Arial, Helvetica, sans-serif; color:var(--ink); background:#fff; }
+  .wrap { max-width:1400px; margin:0 auto; padding:20px 24px 28px; }
+  header { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  h1 { margin:0; font-size:26px; color:var(--blue); }
+  .sub { margin:4px 0 0; color:var(--muted); font-size:14px; }
+  .buttons { display:flex; gap:8px; flex-wrap:wrap; }
+  button { font:inherit; font-size:14px; padding:9px 14px; border-radius:6px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); cursor:pointer; font-weight:bold; }
+  button.on { background:var(--blue); color:#fff; }
+  button:focus-visible, input:focus-visible { outline:3px solid #F5B453; outline-offset:2px; }
+  .tiles { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin:16px 0; }
+  .tile { background:var(--panel); border-radius:8px; padding:14px 16px; }
+  .tile .lab { font-size:11px; font-weight:bold; letter-spacing:.08em; color:var(--red); text-transform:uppercase; }
+  .tile .big { font-size:30px; font-weight:bold; margin-top:4px; color:var(--blue); }
+  .tile .small { font-size:13px; color:var(--muted); margin-top:2px; }
+  .up { color:var(--good) !important; } .down { color:var(--bad) !important; }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:var(--muted); margin:4px 0 10px; }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:6px; vertical-align:-1px; }
+  .markets { display:grid; grid-template-columns:repeat(5, minmax(210px, 1fr)); gap:12px; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:12px; }
+  .card h2 { margin:0; font-size:17px; color:var(--blue); display:flex; justify-content:space-between; align-items:baseline; }
+  .card h2 span { font-size:12px; color:var(--muted); font-weight:normal; }
+  .barlab { font-size:11px; color:var(--muted); margin:8px 0 3px; }
+  .bar { display:flex; height:18px; border-radius:4px; overflow:hidden; gap:2px; background:#fff; }
+  .bar i { display:block; height:100%; }
+  .row { margin-top:9px; }
+  .row .top { display:flex; justify-content:space-between; font-size:13px; }
+  .row .top b { font-weight:bold; }
+  .row .usd { font-size:12px; color:var(--muted); }
+  input[type=range] { width:100%; margin:3px 0 0; accent-color:var(--blue); }
+  .result { margin-top:10px; padding-top:9px; border-top:1px solid var(--line); font-size:13px; }
+  .result .impact { font-size:16px; font-weight:bold; }
+  .badge { display:inline-block; margin-top:5px; font-size:12px; font-weight:bold; padding:3px 8px; border-radius:10px; background:#E3F4EC; color:var(--good); }
+  .badge.bad { background:#FBE6E4; color:var(--bad); }
+  .note { margin-top:14px; font-size:12px; color:var(--muted); line-height:1.5; }
+  @media (max-width:1150px) { .markets { grid-template-columns:repeat(2, 1fr); } .tiles { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Brand X: same sixty, sharper mix</h1>
+      <p class="sub">Move the sliders to change how each market spends its budget. Illustrative case data, not a real forecast. Kaustav Palit, IIM Bangalore.</p>
+    </div>
+    <div class="buttons">
+      <button id="btnCurrent">Current mix</button>
+      <button id="btnRecommended">Recommended mix</button>
+      <button id="btnCsv">Download CSV</button>
+    </div>
+  </header>
+
+  <section class="tiles" aria-live="polite">
+    <div class="tile"><div class="lab">Sales impact a year</div><div class="big" id="impact"></div><div class="small" id="impactNote"></div></div>
+    <div class="tile"><div class="lab">Money moved between channels</div><div class="big" id="moved"></div><div class="small" id="movedNote"></div></div>
+    <div class="tile"><div class="lab">Rules check</div><div class="big" id="rules"></div><div class="small" id="rulesNote"></div></div>
+  </section>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--blue)"></span>Field force</span>
+    <span><span class="dot" style="background:var(--red)"></span>Digital</span>
+    <span><span class="dot" style="background:var(--purple)"></span>Medical events</span>
+    <span><span class="dot" style="background:var(--teal)"></span>Patient support</span>
+  </div>
+
+  <section class="markets" id="markets"></section>
+
+  <p class="note">
+    <b>How the impact is worked out.</b> Each dollar earns the return in Exhibit 3 of the case: field force 1.8, digital 3.1, medical events 1.5, patient support 2.4.
+    Field force adds nothing above 55% of a market's budget, and digital earns 1.5 above 30%. The impact is the difference against the current mix.
+    If field spending above 55% still earned 1.8, the recommended mix would add USD 7.3m and not USD 10.2m.
+    Each market keeps its own budget, so the total is always USD 60m. The case allows no more than 25% of a market's budget to move in a year.
+  </p>
+</div>
+
+<script>
+const CH = ["Field force", "Digital", "Medical events", "Patient support"];
+const COL = ["var(--blue)", "var(--red)", "var(--purple)", "var(--teal)"];
+const M = {
+  A: { budget: 14, current: [55, 15, 20, 10], rec: [50, 25, 15, 10] },
+  B: { budget: 11, current: [50, 20, 20, 10], rec: [50, 25, 15, 10] },
+  C: { budget: 15, current: [60, 10, 20, 10], rec: [50, 20, 15, 15] },
+  D: { budget: 12, current: [62, 8, 20, 10], rec: [54, 16, 15, 15] },
+  E: { budget: 8, current: [40, 30, 15, 15], rec: [40, 30, 15, 15] },
+};
+const KEYS = Object.keys(M);
+let mix = {};
+
+// Sales supported by a mix (USD m). Only the difference against the current mix is shown.
+function value(k, shares) {
+  const B = M[k].budget, usd = shares.map(s => s * B / 100);
+  const fieldCap = 0.55 * B, digitalCap = 0.30 * B;
+  return 1.8 * Math.min(usd[0], fieldCap)
+       + 3.1 * Math.min(usd[1], digitalCap) + 1.5 * Math.max(0, usd[1] - digitalCap)
+       + 1.5 * usd[2] + 2.4 * usd[3];
+}
+const impact = k => value(k, mix[k]) - value(k, M[k].current);
+const moved = k => M[k].budget * mix[k].reduce((s, v, i) => s + Math.abs(v - M[k].current[i]), 0) / 200;
+const within = k => moved(k) <= 0.25 * M[k].budget + 1e-9;
+const money = (v, d = 2) => "USD " + Math.abs(v).toFixed(d) + "m";
+const signed = v => (v > 0.005 ? "+" : v < -0.005 ? "-" : "") + Math.abs(v).toFixed(2);
+const same = (a, b) => KEYS.every(k => a[k].every((v, i) => v === M[k][b][i]));
+
+function load(which) { KEYS.forEach(k => mix[k] = [...M[k][which]]); render(); }
+
+function setShare(k, i, v) {
+  const next = [...mix[k]]; next[i] = Number(v);
+  next[2] = 100 - next[0] - next[1] - next[3];          // medical events take the remainder
+  if (next[2] < 0) { next[i] += next[2]; next[2] = 0; } // never let a share go below zero
+  mix[k] = next; render();
+}
+
+function bar(shares) {
+  return '<div class="bar">' + shares.map((s, i) => `<i style="width:${s}%;background:${COL[i]}"></i>`).join("") + "</div>";
+}
+
+function render() {
+  const total = KEYS.reduce((s, k) => s + impact(k), 0), mv = KEYS.reduce((s, k) => s + moved(k), 0);
+  const ok = KEYS.every(within), over = KEYS.filter(k => !within(k));
+  const imp = document.getElementById("impact");
+  imp.textContent = Math.abs(total) < 0.005 ? "No change" : (total > 0 ? "▲ Up " : "▼ Down ") + money(total, 1);
+  imp.className = "big " + (total > 0.005 ? "up" : total < -0.005 ? "down" : "");
+  document.getElementById("impactNote").textContent = Math.abs(total) < 0.005 ? "Same as the current mix"
+    : "About " + Math.abs(total / 4).toFixed(1) + " points of growth on USD 400m of sales";
+  document.getElementById("moved").textContent = money(mv);
+  document.getElementById("movedNote").textContent = (mv / 60 * 100).toFixed(0) + "% of the USD 60m budget. The total stays at USD 60m";
+  const r = document.getElementById("rules");
+  r.textContent = ok ? "✓ Within the rules" : "✗ Over the limit";
+  r.className = "big " + (ok ? "up" : "down");
+  document.getElementById("rulesNote").textContent = ok ? "No market moves more than 25% of its budget"
+    : "Market " + over.join(" and ") + " moves more than 25% of its budget";
+  document.getElementById("btnCurrent").className = same(mix, "current") ? "on" : "";
+  document.getElementById("btnRecommended").className = same(mix, "rec") ? "on" : "";
+
+  const active = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.key : null;
+  document.getElementById("markets").innerHTML = KEYS.map(k => {
+    const m = M[k], s = mix[k], d = impact(k);
+    const rows = CH.map((c, i) => {
+      const usd = s[i] * m.budget / 100, diff = usd - m.current[i] * m.budget / 100;
+      const slider = i === 2 ? "" : `<input type="range" min="0" max="100" step="1" value="${s[i]}" data-key="${k}-${i}" aria-label="Market ${k} ${c} share">`;
+      return `<div class="row"><div class="top"><span><span class="dot" style="background:${COL[i]}"></span>${c}</span><b>${s[i]}%</b></div>
+        <div class="usd">${money(usd)} (${signed(diff)} against today)${i === 2 ? ". Takes the remainder" : ""}</div>${slider}</div>`;
+    }).join("");
+    return `<article class="card"><h2>Market ${k}<span>Budget USD ${m.budget}m</span></h2>
+      <div class="barlab">Current mix</div>${bar(m.current)}
+      <div class="barlab">Your mix</div>${bar(s)}
+      ${rows}
+      <div class="result"><div class="impact ${d > 0.005 ? "up" : d < -0.005 ? "down" : ""}">${Math.abs(d) < 0.005 ? "Sales unchanged" : (d > 0 ? "▲ Sales up " : "▼ Sales down ") + money(d)}</div>
+      <div>Moved ${money(moved(k))}, ${(moved(k) / m.budget * 100).toFixed(0)}% of budget</div>
+      <span class="badge ${within(k) ? "" : "bad"}">${within(k) ? "✓ Within the 25% rule" : "✗ Over the 25% rule"}</span></div></article>`;
+  }).join("");
+  if (active) { const el = document.querySelector(`[data-key="${active}"]`); if (el) el.focus(); }
+}
+
+document.getElementById("markets").addEventListener("input", e => {
+  if (e.target.dataset.key) { const [k, i] = e.target.dataset.key.split("-"); setShare(k, Number(i), e.target.value); }
+});
+document.getElementById("btnCurrent").onclick = () => load("current");
+document.getElementById("btnRecommended").onclick = () => load("rec");
+document.getElementById("btnCsv").onclick = () => {
+  const rows = [["Market", "Budget USD m", "Channel", "Current %", "Your %", "Current USD m", "Your USD m", "Change USD m"]];
+  KEYS.forEach(k => CH.forEach((c, i) => {
+    const b = M[k].budget, a = M[k].current[i] * b / 100, n = mix[k][i] * b / 100;
+    rows.push([k, b, c, M[k].current[i], mix[k][i], a.toFixed(2), n.toFixed(2), (n - a).toFixed(2)]);
+  }));
+  rows.push([]);
+  rows.push(["Market", "Moved USD m", "Moved % of budget", "Within 25% rule", "Sales impact USD m"]);
+  KEYS.forEach(k => rows.push([k, moved(k).toFixed(2), (moved(k) / M[k].budget * 100).toFixed(1), within(k) ? "Yes" : "No", impact(k).toFixed(2)]));
+  rows.push(["Total", KEYS.reduce((s, k) => s + moved(k), 0).toFixed(2), "", KEYS.every(within) ? "Yes" : "No", KEYS.reduce((s, k) => s + impact(k), 0).toFixed(2)]);
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n");
+  saveCsv(csv);
+};
+
+// Saves through the host page when there is one, and as a normal browser download otherwise.
+async function saveCsv(csv) {
+  try {
+    const host = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+    if (host) { await host.save({ filename: "brand-x-mix.csv", data: csv }); return; }
+  } catch (e) { return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = "brand-x-mix.csv"; a.click(); URL.revokeObjectURL(a.href);
+}
+load("rec");
+</script>
+</body>
+</html>

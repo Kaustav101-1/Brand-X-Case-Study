@@ -1,0 +1,58 @@
+DIAGNOSIS
+  Franchise growth 24% -> 13.0%
+  Markets without a competitor grew 17.5%
+  Slowdown shared by all markets: 6.5 pts
+  Extra loss in C and D: 4.5 pts (USD 15.8m)
+  Budget as % of sales: A 11.7%, B 11.6%, C 18.8%, D 20.0%, E 17.8%
+  Field spend above the 55% line: USD 1.59m
+
+CURRENT MIX (% of market budget)
+channel  Field force  Digital  Medical events  Patient support
+market                                                        
+A               55.0     15.0            20.0             10.0
+B               50.0     20.0            20.0             10.0
+C               60.0     10.0            20.0             10.0
+D               62.0      8.0            20.0             10.0
+E               40.0     30.0            15.0             15.0
+
+RECOMMENDED MIX (% of market budget)
+channel  Field force  Digital  Medical events  Patient support
+market                                                        
+A               50.0     25.0            15.0             10.0
+B               50.0     25.0            15.0             10.0
+C               50.0     20.0            15.0             15.0
+D               54.0     16.0            15.0             15.0
+E               40.0     30.0            15.0             15.0
+
+MOVES AND GAIN BY MARKET
+market  moved_usd_m  moved_share  gain_usd_m
+     A         1.40         0.10        2.03
+     B         0.55         0.05        0.88
+     C         2.25         0.15        3.97
+     D         1.56         0.13        3.30
+     E         0.00         0.00        0.00
+  Total moved USD 5.76m (10% of budget)
+  Gain at face value USD 10.2m (+2.5 pts of growth)
+  Without my guardrails (25% rule only): USD 21.5m, USD 15.0m moved
+
+SENSITIVITY (10,000 runs, returns +/-30%, 50-100% of the gain realised)
+  P10 USD 4.6m | median USD 7.4m | P90 USD 11.1m | runs that beat today's mix: 100%
+
+BRIDGE (USD m a year)
+  Digital: +13.67
+  Patient support: +3.24
+  Medical events: -3.90
+  Field force: -2.83
+  net_saturation: +10.18
+  dead_field_usd_m: +1.59
+  net_uniform: +7.32
+
+DECK CHECKS
+  C and D share of budget 45%, of sales 35%, of last year's growth dollars 16%
+  Growth year before: A, B, E 23.0% | C, D 25.6%
+  Growth last year:   A, B, E 17.5% | C, D 5.6%
+  Implied sales: year 1 USD 286m, year 2 USD 354m, year 3 USD 400m
+  Channel totals today, USD m: Field force 32.84 (55%), Digital 9.16 (15%), Medical events 11.60 (19%), Patient support 6.40 (11%)
+  Channel totals in plan, USD m: Field force 29.68 (49%), Digital 13.57 (23%), Medical events 9.00 (15%), Patient support 7.75 (13%)
+  Growth points: uniform 1.8, saturation 2.5, P10 1.2, P90 2.8
+  Largest move in one market: 15% of its budget
